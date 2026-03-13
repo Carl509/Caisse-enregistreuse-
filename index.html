@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caisse — Objets Personnalises</title>
+  <link rel="stylesheet" href="caisse.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7c6ef7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Caisse">
+</head>
+<body>
+
+<!-- ══════════════════════════
+     LOGIN
+══════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">&#9670; CAISSE</div>
+    <div class="login-sub">Objets Personnalises — Acces securise</div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" class="form-input" id="passwordInput" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="login()">Se connecter</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     APPLICATION
+══════════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">&#9670; <span>CAISSE</span></div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topDate"></span>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="lireImport(event)">
+      <button class="btn-logout" onclick="importerJSON()" style="border-color:var(--accent);color:var(--accent)">&#8593; Import</button>
+      <button class="btn-logout" onclick="exporterJSON()" style="border-color:var(--green);color:var(--green)">&#8595; Export</button>
+      <button class="btn-logout" onclick="logout()">&#x2715; Exit</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <button class="nav-item active" id="nav-caisse" onclick="goTo('caisse')">
+      <span class="nav-icon">🖥️</span>
+      <span>Caisse</span>
+    </button>
+    <button class="nav-item" id="nav-stock" onclick="goTo('stock')">
+      <span class="nav-icon">📋</span>
+      <span>Stock</span>
+    </button>
+    <button class="nav-item" id="nav-historique" onclick="goTo('historique')">
+      <span class="nav-icon">🕐</span>
+      <span>Historique</span>
+    </button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ── PAGE CAISSE ── -->
+    <div class="page active" id="page-caisse">
+      <div class="caisse-layout">
+
+        <!-- Produits -->
+        <div class="produits-panel">
+          <div class="panel-header">
+            <input type="text" class="search-input" id="searchProduit" placeholder="&#128269; Rechercher un produit...">
+          </div>
+          <div class="produits-grid" id="produitsGrid">
+            <!-- Rempli par JS -->
+          </div>
+        </div>
+
+        <!-- Panier -->
+        <div class="panier-panel">
+          <div class="panier-header">
+            <div class="panier-title">Panier</div>
+            <div class="panier-count" id="panierCount">0 article</div>
+          </div>
+          <div class="panier-items" id="panierItems">
+            <div class="panier-empty">&#128722; Panier vide<br>Cliquez sur un produit</div>
+          </div>
+          <div class="panier-footer" id="panierFooter" style="display:none">
+            <div class="panier-total-row">
+              <span class="panier-total-label">Total</span>
+              <span class="panier-total-amount" id="panierTotal">HTG 0</span>
+            </div>
+            <button class="btn-vente" onclick="finaliserVente()">&#9654; Finaliser la vente</button>
+            <button class="btn-vider" onclick="viderPanier()">Vider le panier</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PAGE STOCK ── -->
+    <div class="page" id="page-stock">
+      <div class="stock-header">
+        <div class="page-title">Gestion du <span>Stock</span></div>
+        <button class="btn-add" onclick="ouvrirAddProduit()">+ Nouveau produit</button>
+      </div>
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Produit</th>
+            <th>Prix (HTG)</th>
+            <th>Stock</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="stockBody">
+          <!-- Rempli par JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── PAGE HISTORIQUE ── -->
+    <div class="page" id="page-historique">
+      <div class="page-title">Historique des <span>Ventes</span></div>
+      <div class="histo-stats">
+        <div class="stat-card s1">
+          <div class="stat-label">Nombre de ventes</div>
+          <div class="stat-value" id="statVentes">0</div>
+        </div>
+        <div class="stat-card s2">
+          <div class="stat-label">Ventes du jour</div>
+          <div class="stat-value" id="statJour">HTG 0</div>
+        </div>
+        <div class="stat-card s3">
+          <div class="stat-label">Total global</div>
+          <div class="stat-value" id="statTotal">HTG 0</div>
+        </div>
+      </div>
+      <table class="histo-table">
+        <thead>
+          <tr>
+            <th>N&#176; Recu</th>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Articles</th>
+            <th>Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="histoBody">
+          <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:40px">Aucune vente enregistree</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL OPTIONS PRODUIT
+══════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Options</div>
+    <div id="modalBody"></div>
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="confirmerAjout()">Ajouter au panier</button>
+      <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     MODAL STOCK
+══════════════════════════ -->
+<div class="modal-overlay" id="stockModalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="stockModalTitle">Produit</div>
+    <input type="hidden" id="editId">
+    <div class="modal-group">
+      <label class="modal-label">Nom du produit</label>
+      <input type="text" class="modal-input" id="editNom" placeholder="Ex: Mug Personnalise">
+    </div>
+    <div class="modal-group">
+      <label class="modal-label">Prix (HTG)</label>
+      <input type="number" class="modal-input" id="editPrix" placeholder="Ex: 850">
+    </div>
+    <div class="modal-group">
+      <label class="modal-label">Stock</label>
+      <input type="number" class="modal-input" id="editStock" placeholder="Ex: 20">
+    </div>
+    <div class="modal-group">
+      <label class="modal-label">Options (separes par virgule)</label>
+      <input type="text" class="modal-input" id="editOptions" placeholder="Ex: couleur, texte, taille">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="sauvegarderProduit()">Sauvegarder</button>
+      <button class="btn-cancel" onclick="fermerStockModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     RECU
+══════════════════════════ -->
+<div class="recu-overlay" id="recuOverlay">
+  <div class="recu-box" id="recuContent">
+    <!-- Rempli par JS -->
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="caisse.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(function() { console.log("PWA OK"); })
+      .catch(function(e) { console.log("SW erreur", e); });
+  }
+</script>
+</body>
+</html>
